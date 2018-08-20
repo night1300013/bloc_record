@@ -36,5 +36,14 @@ module BlocRecord
         dirty_obj.instance_variable_set(instance_variable, persisted_obj.instance_variable_get(instance_variable))
       end
     end
+
+    def valid_ids?(ids)
+      ids.each do |id|
+        if id.nil? || id <= 0
+          return false
+        end
+      end
+      true
+    end
   end
 end
