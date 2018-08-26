@@ -38,9 +38,11 @@ module BlocRecord
     end
 
     def valid_ids?(ids)
-      ids.each do |id|
-        if id.nil? || id <= 0
-          return false
+      if ids.kind_of?(Array)
+        ids.each do |id|
+          if id.nil? || id <= 0
+            return false
+          end
         end
       end
       true
