@@ -16,16 +16,11 @@ module Selection
   end
 
   def find_one(id)
-    if BlocRecord::Utility.valid_ids?(id)
-      row = connection.get_first_row <<-SQL
-        SELECT #{columns.join ","} FROM #{table}
-        WHERE id = #{id};
-      SQL
-
-      init_object_from_row(row)
-    else
-      puts "Invalid Id #{id}"
-    end
+    row = connection.get_first_row <<-SQL
+      SELECT #{columns.join ","} FROM #{table}
+      WHERE id = #{id};
+    SQL
+    init_object_from_row(row)
   end
 
   def find_by(attribute,value)

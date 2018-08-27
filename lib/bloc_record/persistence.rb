@@ -36,6 +36,22 @@ module Persistence
     self.class.update(self.id, updates)
   end
 
+  def method_missing(m, *args, &block)
+    if m.match(/update_/)
+      element = m.to_s.split("_")
+      attri = element[1..-1].join("_")
+      if self.class.columns.include?(attri)
+        self.class.update(self.id, { attri => args.last } )
+      else
+        puts "The attribute #{attri} does not exist."
+        gets
+      end
+    else
+      puts "The method #{m} is not a valid input."
+      gets
+    end
+  end
+
   module ClassMethods
      def update_all(updates)
        update(nil, updates)
@@ -56,18 +72,23 @@ module Persistence
      end
 
      def update(ids, updates)
-       updates = BlocRecord::Utility.convert_keys(updates)
-       updates.delete "id"
-       updates_array = updates.map { |key, value| "#{key}=#{BlocRecord::Utility.sql_strings(value)}" }
-
-       if ids.class == Fixnum
-         where_clause = "WHERE id = #{ids};"
-       elsif ids.class == Array
-         where_clause = ids.empty? ? ";" : "WHERE id IN (#{ids.join(",")});"
+       if updates.is_a?(Array)
+         0.upto (ids.length-1) do |i|
+           update(ids[i], updates[i])
+         end
+         return true
        else
-         where_clause = ";"
+         updates = BlocRecord::Utility.convert_keys(updates)
+         updates.delete "id"
+         updates_array = updates.map { |key, value| "#{key}=#{BlocRecord::Utility.sql_strings(value)}" }
+         if ids.class == Fixnum
+           where_clause = "WHERE id = #{ids};"
+         elsif ids.class == Array
+           where_clause = ids.empty? ? ";" : "WHERE id IN (#{ids.join(",")});"
+         else
+           where_clause = ";"
+         end
        end
-
        connection.execute <<-SQL
         UPDATE #{table}
         SET #{updates_array * ","} #{where_clause}
