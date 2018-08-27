@@ -140,11 +140,18 @@ module Selection
   end
 
   def order(*args)
-    if args.count > 1
-      order = args.join(",")
-    else
-      order = args.first.to_s
+    arr = []
+    args.each do |arg|
+      case arg
+      when String
+        arr << arg
+      when Symbol
+        arr << arg.to_s
+      when Hash
+        arr << arg.map{|key, value| "#{key} #{value}"}
+      end
     end
+    order = arr.join(",")
 
     rows = connection.execute <<-SQL
       SELECT * FROM #{table}
@@ -169,6 +176,12 @@ module Selection
         rows = connection.execute <<-SQL
           SELECT * FROM #{table}
           INNER JOIN #{arg.first} ON #{arg.first}.#{table}_id = #{table}.id
+        SQL
+      when Hash
+        joins = arg.first.map{|key, value| "INNER JOIN #{key} ON #{key}.#{table}_id = #{table}.id INNER JOIN #{value} ON #{value}.#{key}_id = #{key}.id"}#.join(" ")
+        puts joins
+        rows = connection.execute <<-SQL
+          SELECT * FROM #{table} #{joins}
         SQL
       end
     end
