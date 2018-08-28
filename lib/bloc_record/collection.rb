@@ -17,5 +17,6 @@ module BlocRecord
     def not(*args)
       ids = self.map(&:id)
       self.any? ? self.first.class.not(args.first, {ids: ids}) : false
+    end
   end
 end
